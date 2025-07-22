@@ -1034,7 +1034,99 @@ def modify_is_proxy_sponsored_method(file_path):
         modify_method(file_path, "private checkPromoInfoInternal(Z)V", new_method_code)
     except NoMethodFoundError as e:
         print(e)
+        
+def apply_dns_patch(root_directory):
+    """Apply DNS patch to use 1.1.1.1 instead of dns.google.com"""
+    search_patterns = [
+        r'"dns\.google\.com"',
+        r'"https://dns\.google\.com/resolve\?name="',
+        r'"https://mozilla\.cloudflare-dns\.com/dns-query\?name="'
+    ]
+    replace_patterns = [
+        '"one.one.one.one"',
+        '"https://1.1.1.1/dns-query?name="',
+        '"https://1.1.1.1/dns-query?name="'
+    ]
+    
+    for search, replace in zip(search_patterns, replace_patterns):
+        apply_regex(root_directory, search, replace)
 
+def apply_download_speed_patch(root_directory):
+    """Apply download speed boost patch by modifying updateParams method"""
+    search_pattern = r'\.method private updateParams\(\)V\n    \.registers 5\n\n    \.line 275\n    iget v0, p0, Lorg/telegram/messenger/FileLoadOperation;->preloadPrefixSize:I\n\n    if-gtz v0, :cond_e\n\n    iget v0, p0, Lorg/telegram/messenger/FileLoadOperation;->currentAccount:I\n\n    invoke-static \{v0\}, Lorg/telegram/messenger/MessagesController;->getInstance\(I\)Lorg/telegram/messenger/MessagesController;\n\n    move-result-object v0\n\n    iget-boolean v0, v0, Lorg/telegram/messenger/MessagesController;->getfileExperimentalParams:Z\n\n    if-eqz v0, :cond_1d\n\n    :cond_e\n    iget-boolean v0, p0, Lorg/telegram/messenger/FileLoadOperation;->forceSmallChunk:Z\n\n    if-nez v0, :cond_1d\n\n    const/high16 v0, 0x80000\n\n    \.line 276\n    iput v0, p0, Lorg/telegram/messenger/FileLoadOperation;->downloadChunkSizeBig:I\n\n    const/16 v0, 0x8\n\n    \.line 277\n    iput v0, p0, Lorg/telegram/messenger/FileLoadOperation;->maxDownloadRequests:I\n\n    \.line 278\n    iput v0, p0, Lorg/telegram/messenger/FileLoadOperation;->maxDownloadRequestsBig:I\n\n    goto :goto_26\n\n    :cond_1d\n    const/high16 v0, 0x20000\n\n    \.line 280\n    iput v0, p0, Lorg/telegram/messenger/FileLoadOperation;->downloadChunkSizeBig:I\n\n    const/4 v0, 0x4\n\n    \.line 281\n    iput v0, p0, Lorg/telegram/messenger/FileLoadOperation;->maxDownloadRequests:I\n\n    \.line 282\n    iput v0, p0, Lorg/telegram/messenger/FileLoadOperation;->maxDownloadRequestsBig:I\n\n    :goto_26\n    const-wide/32 v0, 0x7d000000\n\n    \.line 284\n    iget v2, p0, Lorg/telegram/messenger/FileLoadOperation;->downloadChunkSizeBig:I\n\n    int-to-long v2, v2\n\n    div-long/2addr v0, v2\n\n    long-to-int v1, v0\n\n    iput v1, p0, Lorg/telegram/messenger/FileLoadOperation;->maxCdnParts:I\n\n    return-void\n\.end method'
+    
+    replace_pattern = r'''.method private updateParams()V
+    .registers 5
+
+    .line 266
+    iget v0, p0, Lorg/telegram/messenger/FileLoadOperation;->preloadPrefixSize:I
+
+    if-gtz v0, :cond_e
+
+    iget v0, p0, Lorg/telegram/messenger/FileLoadOperation;->currentAccount:I
+
+    invoke-static {v0}, Lorg/telegram/messenger/MessagesController;->getInstance(I)Lorg/telegram/messenger/MessagesController;
+
+    move-result-object v0
+
+    iget-boolean v0, v0, Lorg/telegram/messenger/MessagesController;->getfileExperimentalParams:Z
+
+    if-eqz v0, :cond_1d
+
+    :cond_e
+    iget-boolean v0, p0, Lorg/telegram/messenger/FileLoadOperation;->forceSmallChunk:Z
+
+    if-nez v0, :cond_1d
+
+    const/high16 v0, 0x80000
+
+    .line 267
+    iput v0, p0, Lorg/telegram/messenger/FileLoadOperation;->downloadChunkSizeBig:I
+
+    const/16 v0, 0x8
+
+    .line 268
+    iput v0, p0, Lorg/telegram/messenger/FileLoadOperation;->maxDownloadRequests:I
+
+    .line 269
+    iput v0, p0, Lorg/telegram/messenger/FileLoadOperation;->maxDownloadRequestsBig:I
+
+    goto :goto_26
+
+    :cond_1d
+    const/high16 v0, 0x80000
+
+    .line 271
+    iput v0, p0, Lorg/telegram/messenger/FileLoadOperation;->downloadChunkSizeBig:I
+
+    const/16 v0, 0x8
+
+    .line 272
+    iput v0, p0, Lorg/telegram/messenger/FileLoadOperation;->maxDownloadRequests:I
+
+    .line 273
+    iput v0, p0, Lorg/telegram/messenger/FileLoadOperation;->maxDownloadRequestsBig:I
+    
+    goto :goto_26
+
+    :goto_26
+    const-wide/32 v0, 0x7d000000
+
+    .line 275
+    iget v2, p0, Lorg/telegram/messenger/FileLoadOperation;->downloadChunkSizeBig:I
+
+    int-to-long v2, v2
+
+    div-long/2addr v0, v2
+
+    long-to-int v1, v0
+
+    iput v1, p0, Lorg/telegram/messenger/FileLoadOperation;->maxCdnParts:I
+
+    return-void
+.end method'''
+
+    apply_regex(root_directory, search_pattern, replace_pattern)
 
 def automate_modification(root_directory, target_file, modification_function):
     """Automate the process of finding the 'relevant smali file' and applying the modification."""
@@ -1203,6 +1295,14 @@ def main(selected_patch=None, root_directory=None):
             lambda: automate_modification(
                 root_directory, "MessagesController.smali", modify_is_sponsored_dis_method
             ),
+        ),
+        "19": (
+            "Apply DNS patch (1.1.1.1 instead of dns.google.com)",
+            lambda: apply_dns_patch(root_directory),
+        ),
+        "20": (
+            "Apply download speed boost patch",
+            lambda: apply_download_speed_patch(root_directory),
         ),
     }
 
