@@ -109,7 +109,7 @@ jobs:
           export API_ID=${{ secrets.API_ID }}
           export API_HASH=${{ secrets.API_HASH }}
           python3 tgupload.py Plus_Patched_${{ env.version }}.apk --chat-id ${{ secrets.CHAT_ID }} --caption "$(cat <<EOF
-          **Telegram [ Premium ] [ Local+ ] [ Direct ] [ Normal + Anti ]**
+          **Telegram [ Premium ] [ Local+ ] [ Direct ] [ Normal + Force-Anti-Delete ]**
           **Version :** ${{ env.version }}
           **Architecture :** Arm + Arm64
           
