@@ -81,16 +81,8 @@ HOOK_SMALI = """
     .registers 1
 
     .line 23
-    sget-boolean v0, Lorg/telegram/abhi/Hook;->candelMessages:Z
-
-    if-eqz v0, :cond_8
-
     const/4 v0, 0x0
-
-    .line 24
     invoke-static {v0}, Lorg/telegram/abhi/Hook;->setCanDelMessages(Z)V
-
-    :cond_8
     return-void
 .end method
 """
@@ -474,7 +466,7 @@ def modify_del_oncreate_method(file_path):
     ]
 
     for line in lines:
-        if f".method {method_name}" or f".method {method_name2}" in line:
+        if f".method {method_name}" in line or f".method {method_name2}" in line:
             in_method = True
             method_found = True
             new_lines.append(line)
