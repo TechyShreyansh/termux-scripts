@@ -30,13 +30,13 @@ jobs:
 
       - name: Download Telegram APK
         run: |
-          tg_apk_url="https://dw.uptodown.net/dwn/RvVkii134Riphftvun7hQBZyU0aCwJjJMFI3FD3XyiTBXJwbWVG2-cl3L20nVRgCpSBjT0NZoCz86P-IbqqSi2yWV8GLNz3dNfkwGUHwzYvPosiLpg8SEcCK-UPzujoM/UczjAXea5rSOuFlew0774sJFlIgzW8e4_Jm68aPbk4-D1PLcG6niTt4gnQRIYUMW0om7fD3U_LAsn5djojFiowOdX0RChBwK-l0oI4YVoC57dRKMgV9ZgqfOoyUt3hbw/_nT46A_a7n-omvDZh94z2i2aug1t1RrbiUpRRiJxeF8S3sUdJN3T3BHKQ0U25qq0wXwfHecaGOLkp87oTXYfMNPIVXiPmup_uyQgXiWuKBY=/plus-messenger-11-13-0-0.apk"
-          wget -q --show-progress $tg_apk_url -O Plus.apk
+          tg_apk_url="https://telegram.org/dl/android/apk"
+          wget -q --show-progress $tg_apk_url -O Telegram.apk
 
       - name: Get latest Telegram version
         id: get_version
         run: |
-          aapt dump badging Plus.apk | grep -oP "versionName='[^']*" | cut -d "'" -f2 > tg_version.txt
+          aapt dump badging Telegram.apk | grep -oP "versionName='[^']*" | cut -d "'" -f2 > tg_version.txt
           echo "Latest version: $(cat tg_version.txt)"
         
       - name: Check if new version is available
@@ -72,31 +72,31 @@ jobs:
       - name: Decompile APK
         if: env.new_version_available == 'true'
         run: |
-          java -jar apktool.jar d Plus.apk -f
+          java -jar apktool.jar d Telegram.apk -f
           rm -rf Telegram/lib/x86*
 
       - name: Apply Normal Patches
         if: env.new_version_available == 'true'
         run: |
-          java -jar apktool.jar d Plus.apk -f
+          java -jar apktool.jar d Telegram.apk -f
           rm -rf Telegram/lib/x86*
           echo "Applying Normal Patches..."
           python3 tgpatcher.py --normal --dir Telegram/
           echo "Patches applied, building apk..."
-          java -jar apktool.jar b Telegram/ -o Plus_Anti_Patched.apk
+          java -jar apktool.jar b Telegram/ -o Telegram_Anti_Patched.apk
           echo "NOTE: apk may not be signed, you may need to sign it manually."
 
       - name: ZipAlign APks
         if: env.new_version_available == 'true'
         run: |
-          zipalign -p -f 4 Plus_Anti_Patched.apk Plus_Anti_Patched_aligned.apk
-          rm Plus_Anti_Patched.apk
+          zipalign -p -f 4 Telegram_Anti_Patched.apk Telegram_Anti_Patched_aligned.apk
+          rm Telegram_Anti_Patched.apk
 
       - name: Sign APks
         if: env.new_version_available == 'true'
         run: |
-          java -jar keystore/apksigner.jar sign --in Plus_Anti_Patched_aligned.apk --out Telegram_Patched_${{ env.version }}.apk --ks keystore/debug.keystore --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --v4-signing-enabled false
-          rm Plus_Anti_Patched_aligned.apk
+          java -jar keystore/apksigner.jar sign --in Telegram_Anti_Patched_aligned.apk --out Telegram_Patched_${{ env.version }}.apk --ks keystore/debug.keystore --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --v4-signing-enabled false
+          rm Telegram_Anti_Patched_aligned.apk
 
       - name: Install upload requirements
         if: env.new_version_available == 'true'
@@ -109,7 +109,7 @@ jobs:
           export API_ID=${{ secrets.API_ID }}
           export API_HASH=${{ secrets.API_HASH }}
           python3 tgupload.py Telegram_Patched_${{ env.version }}.apk --chat-id ${{ secrets.CHAT_ID }} --caption "$(cat <<EOF
-          **Telegram [ Premium ] [ Local+ ] [ Direct ] [ Normal + Anti ]**
+          **Telegram [ Premium ] [ Local+ ] [ Direct ] [ Normal]**
           **Version :** ${{ env.version }}
           **Architecture :** Arm + Arm64
           
