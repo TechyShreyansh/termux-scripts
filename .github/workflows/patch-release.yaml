@@ -30,7 +30,7 @@ jobs:
 
       - name: Download Plus APK
         run: |
-          tg_apk_url="https://dw.uptodown.net/dwn/RvVkii134Riphftvun7hQBZyU0aCwJjJMFI3FD3XyiTUW8xb9VAvQqV5stPf1WPSv9sWWdEo8U3bAiXJV1RCO6arsCSDoYFiLxyUiGu0U0ri7-qkF_a7-J4DajFwkdqk/IUMY1c4ToBYr1ceAUjl6bJEwq43YckC-Q9ctsA8nhDDTNt7djvBUQ3Ydnnrik-fmKsxAiZPtxTVuPEeqsIo1cPbixRBShzeffHquyZVyciBDW61LbTItkGecBRfY3CIK/X2HrKEyQCeLKcyX4UGzyvtYyffAq6FTUkx8iUIhScO8J1QbrCy6RMG2HPFAXRWpIGFQkwR0WRbgZXP0-DVPSRl9S6vK7mwYOSHQk-NEPNB0=/plus-messenger-11-13-0-0.apk"
+          tg_apk_url="https://dw.uptodown.net/dwn/RvVkii134Riphftvun7hQBZyU0aCwJjJMFI3FD3XyiQIsgBnfIxEzFk0wSNgIwCDQ9ls0Cc7adgCJTVdPMkZ1FpzUSxRVALSnkZ1AEGqainPSBhb8mgQEsECYlGOg5da/YBivU3aaZb9lDL1RKmHtHMh0NDjRVmthy7qvNGHNA2XfFmqz6_LfhNnK9nSLCHosEiz-bkHtHKqR42zhs7VK_jnX2pfl3hsvrXlZBKr6V8hhwPVYnPkhkQHD5bRU3swF/_oxgSTw6AOOp2DBMkn2TguQnkDPl-xss9LLpdvIQ5c-wBZX0LDRGOW2Y-LA8IxJW_s7KZNGm0_ZruFBmb2Wo2vtTa_rbsHRmqDsiwKZrXZ0=/plus-messenger-11-12-0-1.apk"
           wget -q --show-progress $tg_apk_url -O Plus.apk
 
       - name: Get latest Plus version
@@ -109,7 +109,7 @@ jobs:
           export API_ID=${{ secrets.API_ID }}
           export API_HASH=${{ secrets.API_HASH }}
           python3 tgupload.py Plus_Patched_${{ env.version }}.apk --chat-id ${{ secrets.CHAT_ID }} --caption "$(cat <<EOF
-          **Plus [ Premium ] [ Local+ ] [ Direct ] [ Normal + Anti ]**
+          **Telegram [ Premium ] [ Local+ ] [ Direct ] [ Normal + Anti ]**
           **Version :** ${{ env.version }}
           **Architecture :** Arm + Arm64
           
@@ -120,7 +120,7 @@ jobs:
           **❏Changelogs:**
           ● See [Full Changelogs](https://telegra.ph/Telegram-premium-07-22-10)
           - [New] Anti-Del Mode: Button toggle to enable Anti-Del Mode
-          - Can be found in Settings -> Plus Business -> Anti-Del Mode
+          - Can be found in Settings -> Telegram Business -> Anti-Del Mode
           
           - **Released by [ Tech Shreyansh ]**
           
