@@ -30,13 +30,13 @@ jobs:
 
       - name: Download Telegram APK
         run: |
-          tg_apk_url="https://telegram.org/dl/android/apk"
-          wget -q --show-progress $tg_apk_url -O Telegram.apk
+          tg_apk_url="https://dw.uptodown.net/dwn/RvVkii134Riphftvun7hQBZyU0aCwJjJMFI3FD3XyiTBXJwbWVG2-cl3L20nVRgCpSBjT0NZoCz86P-IbqqSi2yWV8GLNz3dNfkwGUHwzYvPosiLpg8SEcCK-UPzujoM/UczjAXea5rSOuFlew0774sJFlIgzW8e4_Jm68aPbk4-D1PLcG6niTt4gnQRIYUMW0om7fD3U_LAsn5djojFiowOdX0RChBwK-l0oI4YVoC57dRKMgV9ZgqfOoyUt3hbw/_nT46A_a7n-omvDZh94z2i2aug1t1RrbiUpRRiJxeF8S3sUdJN3T3BHKQ0U25qq0wXwfHecaGOLkp87oTXYfMNPIVXiPmup_uyQgXiWuKBY=/plus-messenger-11-13-0-0.apk"
+          wget -q --show-progress $tg_apk_url -O Plus.apk
 
       - name: Get latest Telegram version
         id: get_version
         run: |
-          aapt dump badging Telegram.apk | grep -oP "versionName='[^']*" | cut -d "'" -f2 > tg_version.txt
+          aapt dump badging Plus.apk | grep -oP "versionName='[^']*" | cut -d "'" -f2 > tg_version.txt
           echo "Latest version: $(cat tg_version.txt)"
         
       - name: Check if new version is available
@@ -72,31 +72,31 @@ jobs:
       - name: Decompile APK
         if: env.new_version_available == 'true'
         run: |
-          java -jar apktool.jar d Telegram.apk -f
+          java -jar apktool.jar d Plus.apk -f
           rm -rf Telegram/lib/x86*
 
       - name: Apply Anti+Normal Patches
         if: env.new_version_available == 'true'
         run: |
-          java -jar apktool.jar d Telegram.apk -f
+          java -jar apktool.jar d Plus.apk -f
           rm -rf Telegram/lib/x86*
           echo "Applying Anti+Normal Patches..."
           python3 tgpatcher.py --anti --dir Telegram/
           echo "Patches applied, building apk..."
-          java -jar apktool.jar b Telegram/ -o Telegram_Anti_Patched.apk
+          java -jar apktool.jar b Telegram/ -o Plus_Anti_Patched.apk
           echo "NOTE: apk may not be signed, you may need to sign it manually."
 
       - name: ZipAlign APks
         if: env.new_version_available == 'true'
         run: |
-          zipalign -p -f 4 Telegram_Anti_Patched.apk Telegram_Anti_Patched_aligned.apk
-          rm Telegram_Anti_Patched.apk
+          zipalign -p -f 4 Plus_Anti_Patched.apk Plus_Anti_Patched_aligned.apk
+          rm Plus_Anti_Patched.apk
 
       - name: Sign APks
         if: env.new_version_available == 'true'
         run: |
-          java -jar keystore/apksigner.jar sign --in Telegram_Anti_Patched_aligned.apk --out Telegram_Patched_${{ env.version }}.apk --ks keystore/debug.keystore --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --v4-signing-enabled false
-          rm Telegram_Anti_Patched_aligned.apk
+          java -jar keystore/apksigner.jar sign --in Plus_Anti_Patched_aligned.apk --out Telegram_Patched_${{ env.version }}.apk --ks keystore/debug.keystore --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --v4-signing-enabled false
+          rm Plus_Anti_Patched_aligned.apk
 
       - name: Install upload requirements
         if: env.new_version_available == 'true'
@@ -118,13 +118,13 @@ jobs:
           Telegram is a messaging app with a focus on speed and security.
           
           **❏Changelogs:**
-          ● See [Full Changelogs](https://telegra.ph/Telegram-premium-08-16-5)
+          ● See [Full Changelogs](https://telegra.ph/Telegram-premium-07-22-10)
           - [New] Anti-Del Mode: Button toggle to enable Anti-Del Mode
-              - Can be found in Settings -> Telegram Business -> Anti-Del Mode
+          - Can be found in Settings -> Telegram Business -> Anti-Del Mode
           
-          - **Released by [ Abhi ]**
+          - **Released by [ Tech Shreyansh ]**
           
-          👉 **How to Save/Forward from copyrighted channels:** [Watch Here](https://youtu.be/TIlxcnzC-mM)
+          👉 **How to Save/Forward from copyrighted channels:** [Watch Here](https://youtu.be/-X-Ixy73reI)
           
           **NOTE:**
             - If you're **facing issue during login** like internal error, not getting OTP then **download Telegram X** from play store -> Login in it -> come back and login to mod
