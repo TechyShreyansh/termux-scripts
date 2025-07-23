@@ -395,7 +395,7 @@ def modify_markMessagesAsDeleted(file_path):
     search_pattern3 = r"sget\s([v|p]\d),\sLorg/telegram/messenger/R\$string;->ShowAdsTitle:I\n+\s+(invoke-static\s{\1},\sLorg/telegram/messenger/LocaleController;->getString\(I\)Ljava/lang/String;\n+\s+move-result-object\s\1|goto\s:goto_\d+)"
 
     replace_pattern = r'const-string \1, "Do Not Delete Messages"\n\3\4\n    invoke-virtual \5, Lorg/telegram/ui/Cells/TextCell;->setTextAndCheck2(Ljava/lang/CharSequence;ZZ)V'
-    replace_pattern2 = r'const-string \1, "After enabling or disabling the feature, ensure you revisit this page for the changes to take effect.\\nMod by ts"'
+    replace_pattern2 = r'const-string \1, "After enabling or disabling the feature, ensure you revisit this page for the changes to take effect.\\nMod by Tech Shreyansh"'
     replace_pattern3 = r'const-string \1, "Anti-Delete Messages"\n    invoke-virtual {v1, \1}, Lorg/telegram/ui/Cells/HeaderCell;->setText(Ljava/lang/CharSequence;)V\n    return-void'
 
     search_patterns = [search_pattern, search_pattern2, search_pattern3]
