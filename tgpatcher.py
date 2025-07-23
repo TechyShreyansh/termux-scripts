@@ -18,7 +18,7 @@ BLUE = "\033[0;34m"
 NC = "\033[0m"  # No Color
 
 HOOK_SMALI = """
-.class public Lorg/telegram/abhi/Hook;
+.class public Lorg/telegram/ts/Hook;
 .super Ljava/lang/Object;
 .source "SourceFile"
 
@@ -42,7 +42,7 @@ HOOK_SMALI = """
     const/4 v0, 0x1
 
     .line 17
-    invoke-static {v0}, Lorg/telegram/abhi/Hook;->setCanDelMessages(Z)V
+    invoke-static {v0}, Lorg/telegram/ts/Hook;->setCanDelMessages(Z)V
 
     return-void
 .end method
@@ -50,7 +50,7 @@ HOOK_SMALI = """
 .method public static setCanDelMessages(Z)V
     .registers 4
 
-    sput-boolean p0, Lorg/telegram/abhi/Hook;->candelMessages:Z
+    sput-boolean p0, Lorg/telegram/ts/Hook;->candelMessages:Z
 
     sget-object v0, Lorg/telegram/messenger/ApplicationLoader;->applicationContext:Landroid/content/Context;
 
@@ -81,14 +81,14 @@ HOOK_SMALI = """
     .registers 1
 
     .line 23
-    sget-boolean v0, Lorg/telegram/abhi/Hook;->candelMessages:Z
+    sget-boolean v0, Lorg/telegram/ts/Hook;->candelMessages:Z
 
     if-eqz v0, :cond_8
 
     const/4 v0, 0x0
 
     .line 24
-    invoke-static {v0}, Lorg/telegram/abhi/Hook;->setCanDelMessages(Z)V
+    invoke-static {v0}, Lorg/telegram/ts/Hook;->setCanDelMessages(Z)V
 
     :cond_8
     return-void
@@ -389,7 +389,7 @@ def modify_markMessagesAsDeleted(file_path):
     if "archive-info.json" in os.listdir(root_dir):
         smali_dir.append("classes")
     smali_dir = "/".join(smali_dir)
-    new_dir = os.path.join(smali_dir, "org", "telegram", "abhi")
+    new_dir = os.path.join(smali_dir, "org", "telegram", "ts")
     if not os.path.exists(new_dir):
         os.makedirs(new_dir, exist_ok=True)
     hook_file = os.path.join(new_dir, "Hook.smali")
@@ -403,7 +403,7 @@ def modify_markMessagesAsDeleted(file_path):
     search_pattern3 = r"sget\s([v|p]\d),\sLorg/telegram/messenger/R\$string;->ShowAdsTitle:I\n+\s+(invoke-static\s{\1},\sLorg/telegram/messenger/LocaleController;->getString\(I\)Ljava/lang/String;\n+\s+move-result-object\s\1|goto\s:goto_\d+)"
 
     replace_pattern = r'const-string \1, "Do Not Delete Messages"\n\3\4\n    invoke-virtual \5, Lorg/telegram/ui/Cells/TextCell;->setTextAndCheck2(Ljava/lang/CharSequence;ZZ)V'
-    replace_pattern2 = r'const-string \1, "After enabling or disabling the feature, ensure you revisit this page for the changes to take effect.\\nMod by Abhi"'
+    replace_pattern2 = r'const-string \1, "After enabling or disabling the feature, ensure you revisit this page for the changes to take effect.\\nMod by Tech Shreyansh"'
     replace_pattern3 = r'const-string \1, "Anti-Delete Messages"\n    invoke-virtual {v1, \1}, Lorg/telegram/ui/Cells/HeaderCell;->setText(Ljava/lang/CharSequence;)V\n    return-void'
 
     search_patterns = [search_pattern, search_pattern2, search_pattern3]
@@ -417,14 +417,14 @@ def modify_markMessagesAsDeleted(file_path):
     automate_modification(root_dir, "LaunchActivity.smali", modify_del_oncreate_method)
 
     new_code_to_append = [
-        "    sget-boolean v0, Lorg/telegram/abhi/Hook;->candelMessages:Z\n",
+        "    sget-boolean v0, Lorg/telegram/ts/Hook;->candelMessages:Z\n",
         "    if-eqz v0, :cond_7\n",
         "    const/4 p1, 0x0\n",
         "    return-object p1\n",
         "    :cond_7\n",
     ]
     new_code_to_append2 = [
-        "    sget-boolean v0, Lorg/telegram/abhi/Hook;->candelMessages:Z\n",
+        "    sget-boolean v0, Lorg/telegram/ts/Hook;->candelMessages:Z\n",
         "    if-eqz v0, :cond_7\n",
         "    const/4 v1, 0x0\n",
         "    return-object v1\n",
@@ -470,7 +470,7 @@ def modify_del_oncreate_method(file_path):
         "    const/4 v2, 0x0\n",
         "    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z\n",
         "    move-result v0\n",
-        "    sput-boolean v0, Lorg/telegram/abhi/Hook;->candelMessages:Z\n",
+        "    sput-boolean v0, Lorg/telegram/ts/Hook;->candelMessages:Z\n",
     ]
 
     for line in lines:
@@ -532,10 +532,10 @@ def create_delcopy_method(file_path):
         "    move-result-object v0\n",
         "    invoke-virtual {v0}, Landroid/widget/Toast;->show()V\n",
         "    if-eqz p2, :cond_55\n",
-        "    invoke-static {}, Lorg/telegram/abhi/Hook;->hook()V\n",
+        "    invoke-static {}, Lorg/telegram/ts/Hook;->hook()V\n",
         "    goto :goto_58\n",
         "    :cond_55\n",
-        "    invoke-static {}, Lorg/telegram/abhi/Hook;->unhook()V\n",
+        "    invoke-static {}, Lorg/telegram/ts/Hook;->unhook()V\n",
         "    :goto_58\n",
         "    return-void\n",
     ]
