@@ -417,14 +417,14 @@ def modify_markMessagesAsDeleted(file_path):
     automate_modification(root_dir, "LaunchActivity.smali", modify_del_oncreate_method)
 
     new_code_to_append = [
-        "    sget-boolean v0, Lorg/telegram/abhi/Hook;->candelMessages:Z\n",
+        "    sget-boolean v0, Lorg/telegram/ts/Hook;->candelMessages:Z\n",
         "    if-eqz v0, :cond_7\n",
         "    const/4 p1, 0x0\n",
         "    return-object p1\n",
         "    :cond_7\n",
     ]
     new_code_to_append2 = [
-        "    sget-boolean v0, Lorg/telegram/abhi/Hook;->candelMessages:Z\n",
+        "    sget-boolean v0, Lorg/telegram/ts/Hook;->candelMessages:Z\n",
         "    if-eqz v0, :cond_7\n",
         "    const/4 v1, 0x0\n",
         "    return-object v1\n",
@@ -470,7 +470,7 @@ def modify_del_oncreate_method(file_path):
         "    const/4 v2, 0x0\n",
         "    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z\n",
         "    move-result v0\n",
-        "    sput-boolean v0, Lorg/telegram/abhi/Hook;->candelMessages:Z\n",
+        "    sput-boolean v0, Lorg/telegram/ts/Hook;->candelMessages:Z\n",
     ]
 
     for line in lines:
@@ -532,10 +532,10 @@ def create_delcopy_method(file_path):
         "    move-result-object v0\n",
         "    invoke-virtual {v0}, Landroid/widget/Toast;->show()V\n",
         "    if-eqz p2, :cond_55\n",
-        "    invoke-static {}, Lorg/telegram/abhi/Hook;->hook()V\n",
+        "    invoke-static {}, Lorg/telegram/ts/Hook;->hook()V\n",
         "    goto :goto_58\n",
         "    :cond_55\n",
-        "    invoke-static {}, Lorg/telegram/abhi/Hook;->unhook()V\n",
+        "    invoke-static {}, Lorg/telegram/ts/Hook;->unhook()V\n",
         "    :goto_58\n",
         "    return-void\n",
     ]
