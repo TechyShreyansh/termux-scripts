@@ -30,7 +30,7 @@ jobs:
 
       - name: Download Plus APK
         run: |
-          tg_apk_url="https://dw.uptodown.net/dwn/JqEXvfnTfeTZtdvnpz5wRCnc75hQnmt9Aga4yVA1tGB9DNOGBLkeIExxZ98K09wG5GdbGg2u17IrmcgJh1MABpM12WgcYGsYVuFfH1qN3lJrORgya1hkZ8yfxEPNRcze/-W8kyUuUJpKnbIBc4bc5tRk_X25DHhs9vTnY6zS3f_eyUY0BhL-Opym2pNTSBLr88J6UCv3yW8k1lv9IcDLKES4zM9kngM0xjdpZPA8KKQ6yAhxTxdX8AGsEZUaRB7Ak/Oxcqrlif2NHE4FkcrYaQ3kAXZi54i61X2YozFk65Kr4W-8cvN857JsluPomaMzos2pjRSVndQWw2AF45EoGPP51SWbW2Ocup55YWhRgSsjY=/plus-messenger-11-13-0-1.apk"
+          tg_apk_url="https://drive.usercontent.google.com/download?id=1in38oZtr7-avWafcKVhatio12ugnaoVX&export=download&authuser=0&confirm=t&uuid=bfb639dd-30ed-44ac-af5d-11b7b2976f58&at=AN8xHoo9_dxShQ7RTXtE5c1NtYU6%3A1754029315713"
           wget -q --show-progress $tg_apk_url -O Plus.apk
 
       - name: Get latest Plus version
