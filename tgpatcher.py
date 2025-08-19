@@ -25,7 +25,7 @@ HOOK_SMALI = """
 
 # static fields
 .field public static candelMessages:Z
-.field public static isPermanentlyEnabled:Z
+.field public static forceEnabled:Z
 
 
 # direct methods
@@ -43,20 +43,15 @@ HOOK_SMALI = """
     const/4 v0, 0x1
 
     .line 17
-    sput-boolean v0, Lorg/telegram/ts/Hook;->candelMessages:Z
-    sput-boolean v0, Lorg/telegram/ts/Hook;->isPermanentlyEnabled:Z
+    invoke-static {v0}, Lorg/telegram/ts/Hook;->setCanDelMessages(Z)V
+    invoke-static {v0}, Lorg/telegram/ts/Hook;->setForceEnabled(Z)V
+
     return-void
 .end method
 
 .method public static setCanDelMessages(Z)V
-    .registers 2
+    .registers 4
 
-    sget-boolean v0, Lorg/telegram/ts/Hook;->isPermanentlyEnabled:Z
-    if-eqz v0, :cond_5
-
-    const/4 p0, 0x1
-
-    :cond_5
     sput-boolean p0, Lorg/telegram/ts/Hook;->candelMessages:Z
 
     sget-object v0, Lorg/telegram/messenger/ApplicationLoader;->applicationContext:Landroid/content/Context;
@@ -79,11 +74,33 @@ HOOK_SMALI = """
 
     move-result-object v0
 
-    const-string v1, "isPermanentlyEnabled"
+    invoke-interface {v0}, Landroid/content/SharedPreferences$Editor;->apply()V
 
-    sget-boolean v2, Lorg/telegram/ts/Hook;->isPermanentlyEnabled:Z
+    return-void
+.end method
 
-    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences$Editor;->putBoolean(Ljava/lang/String;Z)Landroid/content/SharedPreferences$Editor;
+.method public static setForceEnabled(Z)V
+    .registers 4
+
+    sput-boolean p0, Lorg/telegram/ts/Hook;->forceEnabled:Z
+
+    sget-object v0, Lorg/telegram/messenger/ApplicationLoader;->applicationContext:Landroid/content/Context;
+
+    const-string v1, "mainconfig"
+
+    const/4 v2, 0x0
+
+    invoke-virtual {v0, v1, v2}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;
+
+    move-result-object v0
+
+    invoke-interface {v0}, Landroid/content/SharedPreferences;->edit()Landroid/content/SharedPreferences$Editor;
+
+    move-result-object v0
+
+    const-string v1, "forceAntiDelete"
+
+    invoke-interface {v0, v1, p0}, Landroid/content/SharedPreferences$Editor;->putBoolean(Ljava/lang/String;Z)Landroid/content/SharedPreferences$Editor;
 
     move-result-object v0
 
@@ -96,7 +113,8 @@ HOOK_SMALI = """
     .registers 1
 
     .line 23
-    sget-boolean v0, Lorg/telegram/ts/Hook;->isPermanentlyEnabled:Z
+    sget-boolean v0, Lorg/telegram/ts/Hook;->forceEnabled:Z
+
     if-nez v0, :cond_8
 
     const/4 v0, 0x0
@@ -107,293 +125,15 @@ HOOK_SMALI = """
     :cond_8
     return-void
 .end method
+
+.method public static isForceEnabled()Z
+    .registers 1
+
+    sget-boolean v0, Lorg/telegram/ts/Hook;->forceEnabled:Z
+
+    return v0
+.end method
 """
-
-
-class NoMethodFoundError(Exception):
-    """Exception raised when the method is not found in the file."""
-
-    pass
-
-
-def find_smali_file(root_directory, target_file):
-    """Recursively search for the target file within the root directory."""
-    for dirpath, _, filenames in os.walk(root_directory):
-        if target_file in filenames:
-            return os.path.join(dirpath, target_file)
-    return None
-
-
-def find_smali_file_by_method(root_directory, method_name):
-    """Recursively search for the method in any smali file within the root directory."""
-    for dirpath, _, filenames in os.walk(root_directory):
-        for filename in filenames:
-            if filename.endswith(".smali"):
-                file_path = os.path.join(dirpath, filename)
-                with open(file_path, "r") as file:
-                    file_content = file.read()
-                    if method_name in file_content:
-                        return file_path
-    return None
-
-
-def modify_method(file_path, method_name, new_method_code):
-    """Modify the method in the smali file."""
-    with open(file_path, "r") as file:
-        lines = file.readlines()
-
-    in_method = False
-    new_lines = []
-    method_found = False
-
-    for line in lines:
-        if f".method {method_name}" in line:
-            in_method = True
-            method_found = True
-            new_lines.extend(new_method_code)
-            continue
-
-        if in_method:
-            if ".end method" in line:
-                in_method = False
-            continue
-
-        new_lines.append(line)
-
-    if method_found:
-        with open(file_path, "w") as file:
-            file.writelines(new_lines)
-        print(f"{GREEN}INFO: {NC}Method {method_name} modified successfully.")
-    else:
-        raise NoMethodFoundError(
-            f"{YELLOW}WARN: {NC}Method {method_name} not found in the file."
-        )
-
-
-def modify_del_method(file_path, method_name, new_method_code):
-    """Modify the method in the smali file."""
-    with open(file_path, "r") as file:
-        lines = file.readlines()
-
-    in_method = False
-    in_annotation = False
-    method_found = False
-    annotation_end_index = -1
-    new_lines = []
-
-    for i, line in enumerate(lines):
-        if f".method {method_name}" in line:
-            in_method = True
-            method_found = True
-            new_lines.append(line)
-            continue
-
-        if in_method:
-            if ".annotation" in line:
-                in_annotation = True
-            elif in_annotation and ".end annotation" in line:
-                in_annotation = False
-                annotation_end_index = i
-
-            if (
-                not in_annotation
-                and annotation_end_index != -1
-                and i > annotation_end_index
-            ):
-                new_lines.extend(new_method_code)
-                annotation_end_index = -1
-
-            new_lines.append(line)
-
-            if ".end method" in line:
-                in_method = False
-        else:
-            new_lines.append(line)
-
-    if method_found:
-        with open(file_path, "w") as file:
-            file.writelines(new_lines)
-        print(f"{GREEN}INFO: {NC}Method {method_name} modified successfully.")
-    else:
-        raise NoMethodFoundError(
-            f"{YELLOW}WARN: {NC}Method {method_name} not found in the file."
-        )
-
-
-def copy_method(file_path, original_method_name, new_method_name):
-    """Copy the method in the smali file."""
-    with open(file_path, "r") as file:
-        lines = file.readlines()
-
-    in_method = False
-    method_found = False
-    method_lines = []
-
-    for line in lines:
-        if f".method {original_method_name}" in line:
-            in_method = True
-            method_found = True
-            method_lines.append(line.replace(original_method_name, new_method_name))
-            continue
-
-        if in_method:
-            method_lines.append(line)
-            if ".end method" in line:
-                in_method = False
-
-    if method_found:
-        with open(file_path, "a") as file:
-            file.writelines(method_lines)
-        print(
-            f"{GREEN}INFO: {NC}Method {original_method_name} copied to {new_method_name} successfully."
-        )
-    else:
-        print(f"{YELLOW}WARN: {NC}Method {original_method_name} not found in the file.")
-
-
-def apply_regex(root_directory, search_pattern, replace_pattern, file_path=None):
-    """Apply a regex search and replace patch across all smali files in the root directory or a specific file."""
-    pattern = re.compile(search_pattern)
-
-    if file_path:
-        with open(file_path, "r") as file:
-            file_content = file.read()
-
-        new_content = pattern.sub(replace_pattern, file_content)
-
-        if new_content != file_content:
-            with open(file_path, "w") as file:
-                file.write(new_content)
-            print(f"{GREEN}INFO: {NC}Applied regex patch to {file_path}")
-    else:
-        for dirpath, _, filenames in os.walk(root_directory):
-            for filename in filenames:
-                if filename.endswith(".smali"):
-                    file_path = os.path.join(dirpath, filename)
-                    with open(file_path, "r") as file:
-                        file_content = file.read()
-
-                    new_content = pattern.sub(replace_pattern, file_content)
-
-                    if new_content != file_content:
-                        with open(file_path, "w") as file:
-                            file.write(new_content)
-                        print(f"{GREEN}INFO: {NC}Applied regex patch to {file_path}")
-
-
-def apply_isRestrictedMessage(root_directory):
-    """Access Banned Channels [Related]"""
-    search_pattern = r"(iget-boolean\s([v|p]\d+)\, ([v|p]\d+)\, Lorg/telegram/.*isRestrictedMessage:Z)"
-    replace_pattern = r"\1\nconst \2, 0x0"
-    apply_regex(root_directory, search_pattern, replace_pattern)
-
-
-def apply_enableSavingMedia(root_directory):
-    """Enabling Saving Media Everywhere"""
-    search_pattern = (
-        r"(iget-boolean\s([v|p]\d+)\, ([v|p]\d+)\, Lorg/telegram/.*noforwards:Z)"
-    )
-    replace_pattern = r"\1\nconst \2, 0x0"
-    apply_regex(root_directory, search_pattern, replace_pattern)
-
-
-def apply_premiumLocked(root_directory):
-    """make premiumLocked bool false."""
-    search_pattern = (
-        r"(iget-boolean\s([v|p]\d+)\, ([v|p]\d+)\, Lorg/telegram/.*premiumLocked:Z)"
-    )
-    replace_pattern = r"\1\nconst \2, 0x0"
-    apply_regex(root_directory, search_pattern, replace_pattern)
-
-
-def apply_EnableScreenshots(root_directory):
-    """Enables Screenshots"""
-    initial_search_pattern = r"Landroid/view/Window;->.*Flags"
-    secondary_search_pattern = r"const/16 (.*), 0x2000"
-    replace_pattern = r"const/16 \1, 0x0"
-
-    for dirpath, _, filenames in os.walk(root_directory):
-        for filename in filenames:
-            if filename.endswith(".smali"):
-                file_path = os.path.join(dirpath, filename)
-                with open(file_path, "r") as file:
-                    file_content = file.read()
-
-                initial_matches = re.findall(initial_search_pattern, file_content)
-
-                if initial_matches:
-                    new_content = file_content
-                    for match in initial_matches:
-                        new_content = re.sub(
-                            secondary_search_pattern, replace_pattern, new_content
-                        )
-
-                    if new_content != file_content:
-                        with open(file_path, "w") as file:
-                            file.write(new_content)
-                        print(
-                            f"{GREEN}INFO: {NC}Applied windowFlags patch to {file_path}"
-                        )
-
-
-def apply_EnableScreenshots2(root_directory):
-    """Enables Screenshots"""
-    search_pattern1 = r"(sget-boolean\s([v|p]\d+).*SharedConfig;->allowScreenCapture:Z)"
-    replace_pattern1 = r"\1\nconst \2, 0x1"
-
-    search_pattern2 = r"(iget-boolean\s([v|p]\d+)\, ([v|p]\d+)\, Lorg/telegram/ui/.*allowScreenshots:Z)"
-    replace_pattern2 = r"\1\nconst \2, 0x1"
-
-    for dirpath, _, filenames in os.walk(root_directory):
-        for filename in filenames:
-            if filename.endswith(".smali"):
-                file_path = os.path.join(dirpath, filename)
-                with open(file_path, "r") as file:
-                    file_content = file.read()
-
-                new_content = re.sub(search_pattern1, replace_pattern1, file_content)
-
-                new_content = re.sub(search_pattern2, replace_pattern2, new_content)
-
-                if new_content != file_content:
-                    with open(file_path, "w") as file:
-                        file.write(new_content)
-                    print(
-                        f"{GREEN}INFO: {NC}Applied allowScreenCapture patch to {file_path}"
-                    )
-
-
-def apply_EnableScreenshots3(root_directory):
-    """Enables Screenshots"""
-    search_pattern = r"or-int/lit16\s+([vp]\d+),\s+([vp]\d+),\s+0x2000"
-    replace_pattern = r"or-int/lit16 \1, \1, 0x0"
-
-    secret_media_viewer_path = find_smali_file(
-        root_directory, "SecretMediaViewer.smali"
-    )
-    if secret_media_viewer_path:
-        apply_regex(
-            root_directory, search_pattern, replace_pattern, secret_media_viewer_path
-        )
-
-    photo_viewer_path = find_smali_file(root_directory, "PhotoViewer.smali")
-    if photo_viewer_path:
-        apply_regex(root_directory, search_pattern, replace_pattern, photo_viewer_path)
-
-
-def modify_isPremium(file_path):
-    """Modify isPremium method to return true."""
-    new_method_code = [
-        ".method public isPremium()Z\n",
-        "    .locals 1\n",
-        "    const/4 v0, 0x1\n",
-        "    return v0\n",
-        ".end method\n",
-    ]
-    try:
-        modify_method(file_path, "public isPremium()Z", new_method_code)
-    except NoMethodFoundError as e:
-        print(e)
 
 
 def modify_markMessagesAsDeleted(file_path):
@@ -416,9 +156,9 @@ def modify_markMessagesAsDeleted(file_path):
 
     search_pattern3 = r"sget\s([v|p]\d),\sLorg/telegram/messenger/R\$string;->ShowAdsTitle:I\n+\s+(invoke-static\s{\1},\sLorg/telegram/messenger/LocaleController;->getString\(I\)Ljava/lang/String;\n+\s+move-result-object\s\1|goto\s:goto_\d+)"
 
-    replace_pattern = r'const-string \1, "Permanent Anti-Delete"\n\3\4\n    invoke-virtual \5, Lorg/telegram/ui/Cells/TextCell;->setTextAndCheck2(Ljava/lang/CharSequence;ZZ)V'
-    replace_pattern2 = r'const-string \1, "Once enabled, this feature cannot be disabled.\nMod by Tech Shreyansh"'
-    replace_pattern3 = r'const-string \1, "Permanent Anti-Delete"\n    invoke-virtual {v1, \1}, Lorg/telegram/ui/Cells/HeaderCell;->setText(Ljava/lang/CharSequence;)V\n    return-void'
+    replace_pattern = r'const-string \1, "Force Anti-Delete Messages"\n\3\4\n    invoke-virtual \5, Lorg/telegram/ui/Cells/TextCell;->setTextAndCheck2(Ljava/lang/CharSequence;ZZ)V'
+    replace_pattern2 = r'const-string \1, "Once enabled, anti-delete cannot be disabled.\\nMod by Tech Shreyansh"'
+    replace_pattern3 = r'const-string \1, "Force Anti-Delete Messages"\n    invoke-virtual {v1, \1}, Lorg/telegram/ui/Cells/HeaderCell;->setText(Ljava/lang/CharSequence;)V\n    return-void'
 
     search_patterns = [search_pattern, search_pattern2, search_pattern3]
     replace_patterns = [replace_pattern, replace_pattern2, replace_pattern3]
@@ -433,22 +173,16 @@ def modify_markMessagesAsDeleted(file_path):
     new_code_to_append = [
         "    sget-boolean v0, Lorg/telegram/ts/Hook;->candelMessages:Z\n",
         "    if-eqz v0, :cond_7\n",
-        "    sget-boolean v0, Lorg/telegram/ts/Hook;->isPermanentlyEnabled:Z\n",
-        "    if-eqz v0, :cond_8\n",
-        "    :cond_7\n",
         "    const/4 p1, 0x0\n",
         "    return-object p1\n",
-        "    :cond_8\n",
+        "    :cond_7\n",
     ]
     new_code_to_append2 = [
         "    sget-boolean v0, Lorg/telegram/ts/Hook;->candelMessages:Z\n",
         "    if-eqz v0, :cond_7\n",
-        "    sget-boolean v0, Lorg/telegram/ts/Hook;->isPermanentlyEnabled:Z\n",
-        "    if-eqz v0, :cond_8\n",
-        "    :cond_7\n",
         "    const/4 v1, 0x0\n",
         "    return-object v1\n",
-        "    :cond_8\n",
+        "    :cond_7\n",
     ]
 
     try:
@@ -487,17 +221,18 @@ def modify_del_oncreate_method(file_path):
         "    invoke-virtual {v0, v1, v2}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;\n",
         "    move-result-object v0\n",
         '    const-string v1, "candelMessages"\n',
-        "    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z\n',
-        "    move-result v1\n",
-        "    sput-boolean v1, Lorg/telegram/ts/Hook;->candelMessages:Z\n",
-        '    const-string v1, "isPermanentlyEnabled"\n',
-        "    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z\n',
+        "    const/4 v2, 0x0\n",
+        "    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z\n",
         "    move-result v0\n",
-        "    sput-boolean v0, Lorg/telegram/ts/Hook;->isPermanentlyEnabled:Z\n",
+        "    sput-boolean v0, Lorg/telegram/ts/Hook;->candelMessages:Z\n",
+        '    const-string v1, "forceAntiDelete"\n',
+        "    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z\n",
+        "    move-result v0\n",
+        "    sput-boolean v0, Lorg/telegram/ts/Hook;->forceEnabled:Z\n",
     ]
 
     for line in lines:
-        if f".method {method_name}" in line or f".method {method_name2}" in line:
+        if f".method {method_name}" or f".method {method_name2}" in line:
             in_method = True
             method_found = True
             new_lines.append(line)
@@ -547,18 +282,27 @@ def create_delcopy_method(file_path):
     new_codes = [
         "    invoke-virtual {p0}, Landroid/view/View;->getContext()Landroid/content/Context;\n",
         "    move-result-object v1\n",
-        "    if-eqz p2, :cond_48\n",
-        '    const-string v0, "Anti-delete enabled permanently!"\n',
-        "    invoke-static {}, Lorg/telegram/ts/Hook;->hook()V\n",
-        "    goto :goto_4b\n",
-        "    :cond_48\n",
-        '    const-string v0, "Cannot disable - already permanent!"\n',
-        "    invoke-static {}, Lorg/telegram/ts/Hook;->hook()V\n",
-        "    :goto_4b\n",
-        "    const/4 v2, 0x0\n",
+        "    sget-boolean v0, Lorg/telegram/ts/Hook;->forceEnabled:Z\n",
+        "    if-eqz v0, :cond_48\n",
+        '    const-string v0, "Already force enabled"\n',
         "    invoke-static {v1, v0, v2}, Landroid/widget/Toast;->makeText(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;\n",
         "    move-result-object v0\n",
         "    invoke-virtual {v0}, Landroid/widget/Toast;->show()V\n",
+        "    return-void\n",
+        "    :cond_48\n",
+        '    const-string v0, "Turned off"\n',
+        "    if-eqz p2, :cond_55\n",
+        '    const-string v0, "Turned on - Force enabled"\n',
+        "    :cond_55\n",
+        "    invoke-static {v1, v0, v2}, Landroid/widget/Toast;->makeText(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;\n",
+        "    move-result-object v0\n",
+        "    invoke-virtual {v0}, Landroid/widget/Toast;->show()V\n",
+        "    if-eqz p2, :cond_62\n",
+        "    invoke-static {}, Lorg/telegram/ts/Hook;->hook()V\n",
+        "    goto :goto_65\n",
+        "    :cond_62\n",
+        "    invoke-static {}, Lorg/telegram/ts/Hook;->unhook()V\n",
+        "    :goto_65\n",
         "    return-void\n",
     ]
 
