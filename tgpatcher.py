@@ -1,3 +1,11 @@
+#!/data/data/com.termux/files/usr/bin/python
+
+# Telegram Patcher script in python
+# @author: Abhi (@AbhiTheModder)
+
+# Patch credits:  @Zylern_OP, @rezaAa1177, @AbhiTheModder and Nekogram
+
+
 import argparse
 import os
 import re
@@ -394,8 +402,8 @@ def modify_markMessagesAsDeleted(file_path):
 
     search_pattern3 = r"sget\s([v|p]\d),\sLorg/telegram/messenger/R\$string;->ShowAdsTitle:I\n+\s+(invoke-static\s{\1},\sLorg/telegram/messenger/LocaleController;->getString\(I\)Ljava/lang/String;\n+\s+move-result-object\s\1|goto\s:goto_\d+)"
 
-    replace_pattern = r'const-string \1, "Do Not Delete Messages"\n\3\4\n    invoke-virtual \5, Lorg/telegram/ui/Cells/TextCell;->setTextAndCheck2(Ljava/lang/CharSequence;ZZ)V'
-    replace_pattern2 = r'const-string \1, "After enabling or disabling the feature, ensure you revisit this page for the changes to take effect.\\nMod by Tech Shreyansh"'
+    replace_pattern = r'const-string \1, "Anti-Delete Messages"\n\3\4\n    invoke-virtual \5, Lorg/telegram/ui/Cells/TextCell;->setTextAndCheck2(Ljava/lang/CharSequence;ZZ)V'
+    replace_pattern2 = r'const-string \1, "Prevent others from deleting your messages.\\nToggle on/off and restart the app for changes to take effect.\\nMod by Tech Shreyansh"'
     replace_pattern3 = r'const-string \1, "Anti-Delete Messages"\n    invoke-virtual {v1, \1}, Lorg/telegram/ui/Cells/HeaderCell;->setText(Ljava/lang/CharSequence;)V\n    return-void'
 
     search_patterns = [search_pattern, search_pattern2, search_pattern3]
@@ -466,7 +474,7 @@ def modify_del_oncreate_method(file_path):
     ]
 
     for line in lines:
-        if f".method {method_name}" or f".method {method_name2}" in line:
+        if f".method {method_name}" in line or f".method {method_name2}" in line:
             in_method = True
             method_found = True
             new_lines.append(line)
@@ -478,6 +486,12 @@ def modify_del_oncreate_method(file_path):
                 continue
 
             if ".locals" in line:
+                # Increase the number of locals to accommodate our new variables
+                locals_match = re.match(r"\.locals (\d+)", line)
+                if locals_match:
+                    current_locals = int(locals_match.group(1))
+                    if current_locals < 3:
+                        line = f".locals 3\n"
                 new_lines.append(line)
                 new_lines.extend(new_codes)
             else:
@@ -516,9 +530,9 @@ def create_delcopy_method(file_path):
     new_codes = [
         "    invoke-virtual {p0}, Landroid/view/View;->getContext()Landroid/content/Context;\n",
         "    move-result-object v1\n",
-        '    const-string v0, "Turned off"\n',
+        '    const-string v0, "Anti-delete disabled"\n',
         "    if-eqz p2, :cond_48\n",
-        '    const-string v0, "Turned on"\n',
+        '    const-string v0, "Anti-delete enabled"\n',
         "    :cond_48\n",
         "    invoke-static {v1, v0, v2}, Landroid/widget/Toast;->makeText(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;\n",
         "    move-result-object v0\n",
@@ -844,6 +858,65 @@ def modify_updateParams_method(file_path, method_name):
         print(f"{GREEN}INFO: {NC}Method {method_name} modified successfully.")
     else:
         print(f"{YELLOW}WARN: {NC}Method {method_name} not found in the file.")
+
+
+# ONly apply below one in Plus Messenger, Telegram will crash if you do so
+# def modify_markAsReadStories(file_path):
+#     """Modify the smali file to change the iget-boolean and if-nez lines."""
+#     with open(file_path, "r") as file:
+#         lines = file.readlines()
+
+#     new_lines = []
+#     in_method = False
+#     method_found = False
+#     cond_label_pattern = re.compile(r":cond_\d")
+#     register_pattern = re.compile(r"v\d+")
+
+#     for line in lines:
+#         if (
+#             "iget-boolean" in line
+#             and "Lorg/telegram/tgnet/TLRPC$User;->premium:Z" in line
+#         ):
+#             method_found = True
+#             new_lines.append(line)
+#             new_lines.append("    const/4 v9, 0x1\n")
+#         elif "if-nez" in line and cond_label_pattern.search(line):
+#             new_lines.append(line)
+#         else:
+#             new_lines.append(line)
+
+
+#         # if method_found:
+#         #     with open(file_path, "w") as file:
+#         #         file.writelines(new_lines)
+#         #     new_method_code = [
+#         #         ".method private updateButton(Z)V\n",
+#         #         ".locals 5\n",
+#         #         "const/4 v0, 0x0\n",
+#         #         "const/4 v2, 0x1\n",
+#         #         "iput-boolean v2, p0, Lorg/telegram/ui/Stories/StealthModeAlert;->stealthModeIsActive:Z\n",
+#         #         "iget-object v0, p0, Lorg/telegram/ui/Stories/StealthModeAlert;->button:Lorg/telegram/ui/Components/Premium/PremiumButtonView;\n",
+#         #         "sget v1, Lorg/telegram/messenger/R$string;->StealthModeIsActive:I\n",
+#         #         "invoke-static {v1}, Lorg/telegram/messenger/LocaleController;->getString(I)Ljava/lang/String;\n",
+#         #         "move-result-object v1\n",
+#         #         "invoke-virtual {v0, v1, v2, p1}, Lorg/telegram/ui/Components/Premium/PremiumButtonView;->setOverlayText(Ljava/lang/String;ZZ)V\n",
+#         #         "iget-object p1, p0, Lorg/telegram/ui/Stories/StealthModeAlert;->button:Lorg/telegram/ui/Components/Premium/PremiumButtonView;\n",
+#         #         "iget-object p1, p1, Lorg/telegram/ui/Components/Premium/PremiumButtonView;->overlayTextView:Lorg/telegram/ui/Components/AnimatedTextView;\n",
+#         #         "sget v0, Lorg/telegram/ui/ActionBar/Theme;->key_featuredStickers_buttonText:I\n",
+#         #         "invoke-static {v0}, Lorg/telegram/ui/ActionBar/Theme;->getColor(I)I\n",
+#         #         "move-result v0\n",
+#         #         "invoke-virtual {p1, v0}, Lorg/telegram/ui/Components/AnimatedTextView;->setTextColor(I)V\n",
+#         #         "return-void\n",
+#         #         ".end method\n",
+#         #     ]
+#         # modify_method(file_path, "private updateButton(Z)V", new_method_code)
+#         print(
+#             f"{GREEN}INFO: {NC}MarkAsRead patch applied successfully."
+#         )
+#     else:
+#         print(
+#             f"{YELLOW}WARN: {NC}MarkAsRead patch not found in the file."
+#         )
 
 
 def modify_isChatNoForwards(file_path):
