@@ -17,34 +17,14 @@ YELLOW = "\033[1;33m"
 BLUE = "\033[0;34m"
 NC = "\033[0m"  # No Color
 
-#!/data/data/com.termux/files/usr/bin/python
-
-# Telegram Patcher script in python
-# @author: Abhi (@AbhiTheModder)
-
-# Patch credits:  @Zylern_OP, @rezaAa1177, @AbhiTheModder and Nekogram
-
-
-import argparse
-import os
-import re
-import sys
-
-RED = "\033[0;31m"
-GREEN = "\033[0;32m"
-YELLOW = "\033[1;33m"
-BLUE = "\033[0;34m"
-NC = "\033[0m"  # No Color
-
 HOOK_SMALI = """
-.class public Lorg/telegram/abhi/Hook;
+.class public Lorg/telegram/ts/Hook;
 .super Ljava/lang/Object;
 .source "SourceFile"
 
 
 # static fields
 .field public static candelMessages:Z
-.field public static isPermanentlyEnabled:Z
 
 
 # direct methods
@@ -62,21 +42,15 @@ HOOK_SMALI = """
     const/4 v0, 0x1
 
     .line 17
-    sput-boolean v0, Lorg/telegram/abhi/Hook;->candelMessages:Z
-    sput-boolean v0, Lorg/telegram/abhi/Hook;->isPermanentlyEnabled:Z
+    invoke-static {v0}, Lorg/telegram/ts/Hook;->setCanDelMessages(Z)V
+
     return-void
 .end method
 
 .method public static setCanDelMessages(Z)V
-    .registers 2
+    .registers 4
 
-    sget-boolean v0, Lorg/telegram/abhi/Hook;->isPermanentlyEnabled:Z
-    if-eqz v0, :cond_5
-
-    const/4 p0, 0x1
-
-    :cond_5
-    sput-boolean p0, Lorg/telegram/abhi/Hook;->candelMessages:Z
+    sput-boolean p0, Lorg/telegram/ts/Hook;->candelMessages:Z
 
     sget-object v0, Lorg/telegram/messenger/ApplicationLoader;->applicationContext:Landroid/content/Context;
 
@@ -98,7 +72,7 @@ HOOK_SMALI = """
 
     move-result-object v0
 
-    invoke-interface {v0}, Landroid/content/SharedPreferences$Editor;->apply()V
+    invoke-interface {v0}, Landroid/content/SharedPreferences$Editor;->commit()V  # Changed from apply() to commit() for immediate write
 
     return-void
 .end method
@@ -106,16 +80,11 @@ HOOK_SMALI = """
 .method public static unhook()V
     .registers 1
 
-    .line 23
-    sget-boolean v0, Lorg/telegram/abhi/Hook;->isPermanentlyEnabled:Z
-    if-nez v0, :cond_8
-
     const/4 v0, 0x0
 
-    .line 24
-    invoke-static {v0}, Lorg/telegram/abhi/Hook;->setCanDelMessages(Z)V
+    .line 23
+    invoke-static {v0}, Lorg/telegram/ts/Hook;->setCanDelMessages(Z)V
 
-    :cond_8
     return-void
 .end method
 """
@@ -414,7 +383,7 @@ def modify_markMessagesAsDeleted(file_path):
     if "archive-info.json" in os.listdir(root_dir):
         smali_dir.append("classes")
     smali_dir = "/".join(smali_dir)
-    new_dir = os.path.join(smali_dir, "org", "telegram", "abhi")
+    new_dir = os.path.join(smali_dir, "org", "telegram", "ts")
     if not os.path.exists(new_dir):
         os.makedirs(new_dir, exist_ok=True)
     hook_file = os.path.join(new_dir, "Hook.smali")
@@ -427,9 +396,9 @@ def modify_markMessagesAsDeleted(file_path):
 
     search_pattern3 = r"sget\s([v|p]\d),\sLorg/telegram/messenger/R\$string;->ShowAdsTitle:I\n+\s+(invoke-static\s{\1},\sLorg/telegram/messenger/LocaleController;->getString\(I\)Ljava/lang/String;\n+\s+move-result-object\s\1|goto\s:goto_\d+)"
 
-    replace_pattern = r'const-string \1, "Permanent Anti-Delete"\n\3\4\n    invoke-virtual \5, Lorg/telegram/ui/Cells/TextCell;->setTextAndCheck2(Ljava/lang/CharSequence;ZZ)V'
-    replace_pattern2 = r'const-string \1, "Once enabled, this feature cannot be disabled.\nMod by Abhi"'
-    replace_pattern3 = r'const-string \1, "Permanent Anti-Delete"\n    invoke-virtual {v1, \1}, Lorg/telegram/ui/Cells/HeaderCell;->setText(Ljava/lang/CharSequence;)V\n    return-void'
+    replace_pattern = r'const-string \1, "Do Not Delete Messages"\n\3\4\n    invoke-virtual \5, Lorg/telegram/ui/Cells/TextCell;->setTextAndCheck2(Ljava/lang/CharSequence;ZZ)V'
+    replace_pattern2 = r'const-string \1, "After enabling or disabling the feature, ensure you revisit this page for the changes to take effect.\\nMod by Tech Shreyansh"'
+    replace_pattern3 = r'const-string \1, "Anti-Delete Messages"\n    invoke-virtual {v1, \1}, Lorg/telegram/ui/Cells/HeaderCell;->setText(Ljava/lang/CharSequence;)V\n    return-void'
 
     search_patterns = [search_pattern, search_pattern2, search_pattern3]
     replace_patterns = [replace_pattern, replace_pattern2, replace_pattern3]
@@ -442,24 +411,18 @@ def modify_markMessagesAsDeleted(file_path):
     automate_modification(root_dir, "LaunchActivity.smali", modify_del_oncreate_method)
 
     new_code_to_append = [
-        "    sget-boolean v0, Lorg/telegram/abhi/Hook;->candelMessages:Z\n",
+        "    sget-boolean v0, Lorg/telegram/ts/Hook;->candelMessages:Z\n",
         "    if-eqz v0, :cond_7\n",
-        "    sget-boolean v0, Lorg/telegram/abhi/Hook;->isPermanentlyEnabled:Z\n",
-        "    if-eqz v0, :cond_8\n",
-        "    :cond_7\n",
         "    const/4 p1, 0x0\n",
         "    return-object p1\n",
-        "    :cond_8\n",
+        "    :cond_7\n",
     ]
     new_code_to_append2 = [
-        "    sget-boolean v0, Lorg/telegram/abhi/Hook;->candelMessages:Z\n",
+        "    sget-boolean v0, Lorg/telegram/ts/Hook;->candelMessages:Z\n",
         "    if-eqz v0, :cond_7\n",
-        "    sget-boolean v0, Lorg/telegram/abhi/Hook;->isPermanentlyEnabled:Z\n",
-        "    if-eqz v0, :cond_8\n",
-        "    :cond_7\n",
         "    const/4 v1, 0x0\n",
         "    return-object v1\n",
-        "    :cond_8\n",
+        "    :cond_7\n",
     ]
 
     try:
@@ -480,13 +443,10 @@ def modify_markMessagesAsDeleted(file_path):
     except NoMethodFoundError as e:
         print(e)
 
-def create_delcopy_method(file_path):
-    method_name = "public setTextAndCheck2(Ljava/lang/CharSequence;ZZ)V"
-    copy_method(
-        file_path,
-        "public setTextAndCheck(Ljava/lang/CharSequence;ZZ)V",
-        method_name,
-    )
+
+def modify_del_oncreate_method(file_path):
+    method_name = "protected onCreate(Landroid/os/Bundle;)V"
+    method_name2 = "public onCreate(Landroid/os/Bundle;)V"  # For plus
     with open(file_path, "r") as file:
         lines = file.readlines()
 
@@ -495,25 +455,20 @@ def create_delcopy_method(file_path):
     method_found = False
     cond_label_pattern = re.compile(r":cond_\d")
     new_codes = [
-        "    invoke-virtual {p0}, Landroid/view/View;->getContext()Landroid/content/Context;\n",
-        "    move-result-object v1\n",
-        "    if-eqz p2, :cond_48\n",
-        '    const-string v0, "Anti-delete enabled permanently!"\n',
-        "    invoke-static {}, Lorg/telegram/abhi/Hook;->hook()V\n",
-        "    goto :goto_4b\n",
-        "    :cond_48\n",
-        '    const-string v0, "Cannot disable - already permanent!"\n',
-        "    invoke-static {}, Lorg/telegram/abhi/Hook;->hook()V\n",
-        "    :goto_4b\n",
+        "    sget-object v0, Lorg/telegram/messenger/ApplicationLoader;->applicationContext:Landroid/content/Context;\n",
+        '    const-string v1, "mainconfig"\n',
         "    const/4 v2, 0x0\n",
-        "    invoke-static {v1, v0, v2}, Landroid/widget/Toast;->makeText(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;\n",
+        "    invoke-virtual {v0, v1, v2}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;\n",
         "    move-result-object v0\n",
-        "    invoke-virtual {v0}, Landroid/widget/Toast;->show()V\n",
-        "    return-void\n",
+        '    const-string v1, "candelMessages"\n',
+        "    const/4 v2, 0x0\n",
+        "    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z\n",
+        "    move-result v0\n",
+        "    sput-boolean v0, Lorg/telegram/ts/Hook;->candelMessages:Z\n",
     ]
 
     for line in lines:
-        if f".method {method_name}" in line:
+        if f".method {method_name}" in line or f".method {method_name2}" in line:
             in_method = True
             method_found = True
             new_lines.append(line)
@@ -524,7 +479,8 @@ def create_delcopy_method(file_path):
                 new_lines.append(line)
                 continue
 
-            if "return-void" in line:
+            if ".locals" in line:
+                new_lines.append(line)
                 new_lines.extend(new_codes)
             else:
                 new_lines.append(line)
@@ -544,9 +500,14 @@ def create_delcopy_method(file_path):
         print(f"{YELLOW}WARN: {NC}Method {method_name} not found in the file.")
         sys.exit(1)
 
-def modify_del_oncreate_method(file_path):
-    method_name = "protected onCreate(Landroid/os/Bundle;)V"
-    method_name2 = "public onCreate(Landroid/os/Bundle;)V"  # For plus
+
+def create_delcopy_method(file_path):
+    method_name = "public setTextAndCheck2(Ljava/lang/CharSequence;ZZ)V"
+    copy_method(
+        file_path,
+        "public setTextAndCheck(Ljava/lang/CharSequence;ZZ)V",
+        method_name,
+    )
     with open(file_path, "r") as file:
         lines = file.readlines()
 
@@ -555,23 +516,26 @@ def modify_del_oncreate_method(file_path):
     method_found = False
     cond_label_pattern = re.compile(r":cond_\d")
     new_codes = [
-        "    sget-object v0, Lorg/telegram/messenger/ApplicationLoader;->applicationContext:Landroid/content/Context;\n",
-        '    const-string v1, "mainconfig"\n',
-        "    const/4 v2, 0x0\n",
-        "    invoke-virtual {v0, v1, v2}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;\n",
+        "    invoke-virtual {p0}, Landroid/view/View;->getContext()Landroid/content/Context;\n",
+        "    move-result-object v1\n",
+        '    const-string v0, "Turned off"\n',
+        "    if-eqz p2, :cond_48\n",
+        '    const-string v0, "Turned on"\n',
+        "    :cond_48\n",
+        "    invoke-static {v1, v0, v2}, Landroid/widget/Toast;->makeText(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;\n",
         "    move-result-object v0\n",
-        '    const-string v1, "candelMessages"\n',
-        "    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z\n",
-        "    move-result v0\n",
-        "    sput-boolean v0, Lorg/telegram/abhi/Hook;->candelMessages:Z\n",
-        '    const-string v1, "isPermanentlyEnabled"\n',
-        "    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z\n",
-        "    move-result v0\n",
-        "    sput-boolean v0, Lorg/telegram/abhi/Hook;->isPermanentlyEnabled:Z\n",
+        "    invoke-virtual {v0}, Landroid/widget/Toast;->show()V\n",
+        "    if-eqz p2, :cond_55\n",
+        "    invoke-static {}, Lorg/telegram/ts/Hook;->hook()V\n",
+        "    goto :goto_58\n",
+        "    :cond_55\n",
+        "    invoke-static {}, Lorg/telegram/ts/Hook;->unhook()V\n",
+        "    :goto_58\n",
+        "    return-void\n",
     ]
 
     for line in lines:
-        if f".method {method_name}" or f".method {method_name2}" in line:
+        if f".method {method_name}" in line:
             in_method = True
             method_found = True
             new_lines.append(line)
@@ -582,8 +546,7 @@ def modify_del_oncreate_method(file_path):
                 new_lines.append(line)
                 continue
 
-            if ".locals" in line:
-                new_lines.append(line)
+            if "return-void" in line:
                 new_lines.extend(new_codes)
             else:
                 new_lines.append(line)
