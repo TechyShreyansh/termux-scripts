@@ -30,7 +30,7 @@ jobs:
 
       - name: Download Plus APK
         run: |
-          tg_apk_url="https://dw.uptodown.net/dwn/cTEEBF6qrOFXA6r9dBX_OQSXzEY7xwYnPBsC0bG1jx9h-D6f4lZPbgu8mByNCICDKn8Gt4KzBQTP__ZF37bfBImYmT9_UBQV54lyrPMb8npcV11Z_EENLXDzafvC3J1H/uTrQAl-w2Uz_uXDSQRBL7xPsR_PDQsUs4mF-l6cwnFkSyb_n6VFpsTq5gVOhkXG2UvP-V2A8aa151m0pDuLLy5bY0vlA3crR_1rZIC06WwnioqHcqbIyG1gforKXVa9E/Smf7MEZ8vuqXfSnNxfnjJ3YA78lUG1Q3jRd8mvwWtWrMs7Ki5mcNYXpmNxBI5b5bIv8ImWyKc4FEmYGiFgk3FwQNEINQi5v29pawOu0U32Y=/plus-messenger-12-0-1-0.apk"
+          tg_apk_url="https://eb5e7388c3df147b74dd2379b7cf8323.r2.cloudflarestorage.com/downloadprod/wp-content/uploads/2025/09/43/68bac64dc6b03/org.telegram.plus_12.0.1.0-21671_minAPI21%28arm64-v8a%2Carmeabi-v7a%29%28nodpi%29_apkmirror.com.apk?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=72a5ba3a0b8a601e535d5525f12f8177%2F20250911%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20250911T100700Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Signature=351a1dce4baa3cc9adcf7ed354de7acbb876eb062a21a2751059233404230556"
           wget -q --show-progress $tg_apk_url -O Plus.apk
 
       - name: Get latest Plus version
