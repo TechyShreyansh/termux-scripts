@@ -30,7 +30,7 @@ jobs:
 
       - name: Download Plus APK
         run: |
-          tg_apk_url="https://eb5e7388c3df147b74dd2379b7cf8323.r2.cloudflarestorage.com/downloadprod/wp-content/uploads/2025/09/43/68bac64dc6b03/org.telegram.plus_12.0.1.0-21671_minAPI21%28arm64-v8a%2Carmeabi-v7a%29%28nodpi%29_apkmirror.com.apk?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=72a5ba3a0b8a601e535d5525f12f8177%2F20250911%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20250911T120154Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Signature=24bf241275947ecb3e5ce1b0d6e537dc8ec9317d66a86ed2a7aa0a4c8222060c"
+          tg_apk_url="https://drive.usercontent.google.com/download?id=1NKoQN3MlZN7IXGzh3An5Ayxi14lbgQR1&export=download&authuser=0&confirm=t&uuid=119a52d1-c1df-430c-8f2c-5453f180de44"
           wget -q --show-progress $tg_apk_url -O Plus.apk
 
       - name: Get latest Plus version
