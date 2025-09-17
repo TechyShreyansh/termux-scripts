@@ -30,7 +30,7 @@ jobs:
 
       - name: Download Plus APK
         run: |
-          tg_apk_url="https://drive.usercontent.google.com/download?id=1NKoQN3MlZN7IXGzh3An5Ayxi14lbgQR1&export=download&authuser=0&confirm=t&uuid=119a52d1-c1df-430c-8f2c-5453f180de44"
+          tg_apk_url="https://drive.usercontent.google.com/download?id=1MuAM1uVX-4otfXfazluRN7N0Ltyg3Rzc&export=download&confirm=t&uuid=89c7ffaa-ce8b-4671-819f-7f4013640a96"
           wget -q --show-progress $tg_apk_url -O Plus.apk
 
       - name: Get latest Plus version
