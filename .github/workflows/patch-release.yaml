@@ -30,7 +30,7 @@ jobs:
 
       - name: Download Plus APK
         run: |
-          tg_apk_url="https://drive.usercontent.google.com/download?id=1MuAM1uVX-4otfXfazluRN7N0Ltyg3Rzc&export=download&confirm=t&uuid=89c7ffaa-ce8b-4671-819f-7f4013640a96"
+          tg_apk_url="http://major-mela-b-ot-zhub01-5404cfb8.koyeb.app/25135?hash=AgADah"
           wget -q --show-progress $tg_apk_url -O Plus.apk
 
       - name: Get latest Plus version
