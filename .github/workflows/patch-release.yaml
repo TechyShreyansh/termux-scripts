@@ -95,7 +95,7 @@ jobs:
       - name: Sign APks
         if: env.new_version_available == 'true'
         run: |
-          java -jar keystore/apksigner.jar sign --in Plus_Anti_Patched_aligned.apk --out Plus_Patched_${{ env.version }}.apk --ks keystore/debug.keystore --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --v4-signing-enabled false
+          java -jar keystore/apksigner.jar sign --in Plus_Anti_Patched_aligned.apk --out Plus_Patched_Force_Antidelete_${{ env.version }}.apk --ks keystore/debug.keystore --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --v4-signing-enabled false
           rm Plus_Anti_Patched_aligned.apk
 
       - name: Install upload requirements
@@ -108,7 +108,7 @@ jobs:
           export BOT_TOKEN=${{ secrets.BOT_TOKEN }}
           export API_ID=${{ secrets.API_ID }}
           export API_HASH=${{ secrets.API_HASH }}
-          python3 tgupload.py Plus_Patched_Force_Antidelete${{ env.version }}.apk --chat-id ${{ secrets.CHAT_ID }} --caption "$(cat <<EOF
+          python3 tgupload.py Plus_Patched_Force_Antidelete_${{ env.version }}.apk --chat-id ${{ secrets.CHAT_ID }} --caption "$(cat <<EOF
           **Telegram [ Premium ] [ Local+ ] [ Direct ] [ Normal + Force-Anti-Delete ]**
           **Version :** ${{ env.version }}
           **Architecture :** Arm + Arm64
