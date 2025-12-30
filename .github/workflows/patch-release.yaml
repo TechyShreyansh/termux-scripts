@@ -30,7 +30,7 @@ jobs:
 
       - name: Download Plus APK
         run: |
-          tg_apk_url="http://major-mela-b-ot-zhub01-5404cfb8.koyeb.app/103?hash=AgADJR"
+          tg_apk_url="http://major-mela-b-ot-zhub01-5404cfb8.koyeb.app/5?hash=AgADhy"
           wget -q --show-progress $tg_apk_url -O Plus.apk
 
       - name: Get latest Plus version
@@ -108,7 +108,7 @@ jobs:
           export BOT_TOKEN=${{ secrets.BOT_TOKEN }}
           export API_ID=${{ secrets.API_ID }}
           export API_HASH=${{ secrets.API_HASH }}
-          python3 tgupload.py Plus_Patched_${{ env.version }}.apk --chat-id ${{ secrets.CHAT_ID }} --caption "$(cat <<EOF
+          python3 tgupload.py Plus_Patched_Force_Antidelete${{ env.version }}.apk --chat-id ${{ secrets.CHAT_ID }} --caption "$(cat <<EOF
           **Telegram [ Premium ] [ Local+ ] [ Direct ] [ Normal + Force-Anti-Delete ]**
           **Version :** ${{ env.version }}
           **Architecture :** Arm + Arm64
