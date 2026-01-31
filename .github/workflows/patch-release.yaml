@@ -66,7 +66,12 @@ jobs:
         run: |
           if [ ! -f apktool.jar ]; then
             echo "apktool.jar not found, downloading..."
-            curl -L https://github.com/iBotPeaches/Apktool/releases/download/v2.10.0/apktool_2.10.0.jar -o apktool.jar --progress-bar
+            # First try curl
+            curl -L https://github.com/iBotPeaches/Apktool/releases/download/v2.10.0/apktool_2.10.0.jar -o apktool.jar --progress-bar || {
+              echo "curl failed, trying wget..."
+              wget -q --show-progress https://github.com/iBotPeaches/Apktool/releases/download/v2.10.0/apktool_2.10.0.jar -O apktool.jar
+            }
+          fi
 
       - name: Decompile APK
         if: env.new_version_available == 'true'
