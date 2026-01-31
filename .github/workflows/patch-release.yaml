@@ -64,20 +64,9 @@ jobs:
       - name: Download apktool
         if: env.new_version_available == 'true'
         run: |
-          # Remove any old file
-          rm -f apktool.jar
-          echo "Downloading apktool..."
-          
-          # Download with retry
-          wget --tries=3 --timeout=30 -q --show-progress https://github.com/iBotPeaches/Apktool/releases/download/v2.10.0/apktool_2.10.0.jar -O apktool.jar || {
-            echo "wget failed, trying curl..."
-            curl -L --retry 3 --max-time 30 https://github.com/iBotPeaches/Apktool/releases/download/v2.10.0/apktool_2.10.0.jar -o apktool.jar
-          }
-          
-          # Verify download
           if [ ! -f apktool.jar ]; then
-            echo "❌ ERROR: apktool.jar download failed!"
-            exit 1
+            echo "apktool.jar not found, downloading..."
+            curl -L https://github.com/iBotPeaches/Apktool/releases/download/v2.10.0/apktool_2.10.0.jar -o apktool.jar --progress-bar
           fi
           
           echo "✅ apktool downloaded successfully"
