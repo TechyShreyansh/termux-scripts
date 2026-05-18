@@ -74,6 +74,7 @@ patterns = {
         "F. 0F 1C F8 F. 5. 01 A9 F. 5. 02 A9 F. .. 03 A9 .. .. .. .. 68 1A 40 F9",
         "F. 43 01 D1 FE 67 01 A9 F8 5F 02 A9 F6 57 03 A9 F4 4F 04 A9 13 00 40 F9 F4 03 00 AA 68 1A 40 F9",
         "FF 43 01 D1 FE 67 01 A9 .. .. 06 94 .. 7. 06 94 68 1A 40 F9 15 15 41 F9 B5 00 00 B4 B6 4A 40 F9",
+        "FF .3 01 D1 F. .. 01 A9 .. .. .. 94 .. .. .. 52 48 00 00 39 1A 50 40 F9 DA 02 00 B4 48 03 40 F9",
         "F. 0F 1C F8 F. .. 0. .. .. .. .. .9 .. .. 0. .. 68 1A 40 F9 15 .. 4. F9 B5 00 00 B4 B6 46 40 F9",
     ],
     "arm": [
@@ -81,8 +82,10 @@ patterns = {
     ],
     "x86": [
         "55 41 57 41 56 41 55 41 54 53 50 49 89 fe 48 8b 1f 48 8b 43 30 4c 8b b8 d0 01 00 00 4d 85 ff 74 12 4d 8b a7 90 00 00 00 4d 85 e4 74 4a 49 8b 04 24 eb 46",
-        "55 41 57 41 56 41 55 41 54 53 50 49 89 f. 4c 8b 37 49 8b 46 30 4c 8b a. .. 0. 00 00 4d 85 e. 74 1. 4d 8b",
+        "55 41 57 41 56 41 55 41 54 53 50 49 89 f. 4. 8b .. 4. 8b 4. 30 4c 8b .. .. 0. 00 00 4d 85 .. 74 1. 4d 8b",
         "55 41 57 41 56 41 55 41 54 53 48 83 EC 18 49 89 FF 48 8B 1F 48 8B 43 30 4C 8B A0 28 02 00 00 4D 85 E4 74",
+        "55 41 57 41 56 41 55 41 54 53 48 83 EC 18 49 89 FE 4C 8B 27 49 8B 44 24 30 48 8B 98 D0 01 00 00 48 85 DB",
+        "55 89 E5 53 57 56 83 E4 F0 83 EC 20 E8 00 00 00 00 5B 81 C3 2B 79 66 00 8B 7D 08 8B 17 8B 42 18 8B 80 88 01"
         "55 41 57 41 56 41 55 41 54 53 48 83 EC 38 C6 02 50 48 8B AF A. 00 00 00 48 85 ED 74 7. 48 83 7D 00 00 74",  # This pattern finds `session_verify_cert_chain` instead
     ],
 }
@@ -132,18 +135,18 @@ def find_offset(r2, patterns, is_iA=False, arch=None):
             return
 
     if arch in patterns:
-        for arch in patterns:
-            for pattern in patterns[arch]:
-                search_result = r2.cmd(f"/x {pattern}")
-                search_result = search_result.strip().split(" ")[0]
-                if search_result:
-                    search_fcn = r2.cmd(f"{search_result};afl.").strip().split(" ")[0]
-                    print(f"ssl_verify_peer_cert found at: {BLUE}{search_result}{NC}")
-                    if not search_fcn and arch == "x86":
-                        search_fcn = search_result
-                        r2.cmd(f"af @{search_fcn}")
-                    print(f"function at: {YELLOW}{search_fcn}{NC}")
-                    return search_fcn
+        for idx, pattern in enumerate(patterns[arch]):
+            search_result = r2.cmd(f"/x {pattern}")
+            search_result = search_result.strip().split(" ")[0]
+            if search_result:
+                search_fcn = r2.cmd(f"{search_result};afl.").strip().split(" ")[0]
+                print(f"ssl_verify_peer_cert found at: {BLUE}{search_result}{NC}")
+                if not search_fcn:
+                    search_fcn = search_result
+                    r2.cmd(f"af @{search_fcn}")
+                print(f"function at: {YELLOW}{search_fcn}{NC}")
+                patch_cmd = "wao ret1" if (arch == "arm64" and idx == 3) or (arch == "x86" and idx == 5) else "wao ret0"
+                return search_fcn, patch_cmd
 
 
 if __name__ == "__main__":
@@ -197,13 +200,14 @@ if __name__ == "__main__":
     r2.cmd("aac")
     print(f"{YELLOW}Searching for offset...{NC}")
     if args.arch:
-        offset = find_offset(r2, patterns, arch=args.arch)
+        result = find_offset(r2, patterns, arch=args.arch)
     else:
-        offset = find_offset(r2, patterns, is_iA)
-    if offset:
+        result = find_offset(r2, patterns, is_iA)
+    if result:
+        offset, patch_cmd = result
         if not args.print:
             r2.cmd(f"{offset}")
-            r2.cmd("wao ret0")
+            r2.cmd(patch_cmd)
             print(f"{GREEN}ssl_verify_peer_cert patched successfully!{NC}")
     else:
         print(f"{RED}ssl_verify_peer_cert not found.{NC}")
