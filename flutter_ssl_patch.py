@@ -231,10 +231,7 @@ if __name__ == "__main__":
             ia_version = tuple(
                 map(int, "5.9.5".split("."))
             )  # Because r2 depreciated `ia` 5.9.6 onwards
-            if r2_version <= ia_version:
-                is_iA = True
-            else:
-                is_iA = False
+            is_iA = r2_version <= ia_version
         except Exception as e:
             print(f"{RED}Error: {str(e)}{NC}")
             sys.exit(1)
